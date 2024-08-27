@@ -14,10 +14,10 @@ terraform {
 }
 
 provider "google" {
-  credentials = file("mygcp-creds.json")
-  project     = "terraform-gcp-432819"
-  region      = "us-central1"
-  zone        = "us-central1-b"
+  #credentials = file("mygcp-creds.json")
+  project     = "dgt-gcp-cgov-d-michaelk"
+  region      = "me-west1"
+  zone        = "me-west1-a"
 }
 
 # Create VPC
@@ -31,7 +31,7 @@ resource "google_compute_subnetwork" "subnet-1" {
   name          = "subnet-1"
   ip_cidr_range = "10.0.0.0/8"
   network       = google_compute_network.vpc_network.id
-  region        = "us-central1"
+  region        = "me-west1"
 }
 
 # Create Firewall Rules for the VPC
@@ -49,13 +49,13 @@ resource "google_compute_firewall" "allow_internal" {
 
 # Create Ubuntu VM
 resource "google_compute_instance" "ubuntu_vm" {
-  name         = "michaelk-govil-home-test-ubuntu"
+  name         = "ubuntu"
   machine_type = "e2-medium"
-  zone         = "us-central1-a"
+  zone         = "me-west1-a"
 
   boot_disk {
     initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-2004-lts"
+      image = "ubuntu-os-cloud/ubuntu-2204-lts"
     }
   }
 
@@ -77,7 +77,7 @@ sudo sh /home/manager_co_il/start.sh
 EOF
 
   service_account {
-    email  = "terraform@terraform-gcp-432819.iam.gserviceaccount.com"
+    email  = "d-michaelk-iac@dgt-gcp-cgov-d-michaelk.iam.gserviceaccount.com"
     scopes = ["https://www.googleapis.com/auth/cloud-platform"]
   }
 }
@@ -87,14 +87,14 @@ resource "google_compute_disk" "windows_additional_disk" {
   name  = "michaelk-govil-home-test-windows-disk"
   size  = 20
   type  = "pd-standard"
-  zone  = "us-central1-a"
+  zone  = "me-west1-a"
 }
 
 # Create Windows VM and attach the additional disk in subnet-1
 resource "google_compute_instance" "windows_vm" {
   name         = "windows-server-1"
   machine_type = "e2-medium"
-  zone         = "us-central1-a"
+  zone         = "me-west1-a"
 
   boot_disk {
     initialize_params {
@@ -113,44 +113,51 @@ resource "google_compute_instance" "windows_vm" {
   }
 
   service_account {
-    email  = "terraform@terraform-gcp-432819.iam.gserviceaccount.com"
+    email  = "d-michaelk-iac@dgt-gcp-cgov-d-michaelk.iam.gserviceaccount.com"
     scopes = ["https://www.googleapis.com/auth/cloud-platform"]
   }
   
   tags = ["windows-server-1"]
 }
-
+/*
 # Create a GCS bucket
 resource "google_storage_bucket" "bucket" {
-  name     = "michaelk-govil-home-test"
-  location = "US"
+  name     = "michaelk-shani-test"
+  location = "me-west1"
 }
 
 # Allow VMs to access the bucket
 resource "google_project_iam_member" "bucket_access_ubuntu" {
-  project = "terraform-gcp-432819"
+  project = "dgt-gcp-cgov-d-michaelk"
   role    = "roles/storage.objectViewer"
   member  = "serviceAccount:${google_compute_instance.ubuntu_vm.service_account[0].email}"
 }
 
 resource "google_project_iam_member" "bucket_access_windows" {
-  project = "terraform-gcp-432819"
+  project = "dgt-gcp-cgov-d-michaelk"
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${google_compute_instance.windows_vm.service_account[0].email}"
+}
+**/
+
+# Allow VMs to access the bucket
+resource "google_project_iam_member" "bucket_access_ubuntu" {
+  project = "dgt-gcp-cgov-d-michaelk"
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${google_compute_instance.ubuntu_vm.service_account[0].email}"
+}
+
+resource "google_project_iam_member" "bucket_access_windows" {
+  project = "dgt-gcp-cgov-d-michaelk"
   role    = "roles/storage.objectViewer"
   member  = "serviceAccount:${google_compute_instance.windows_vm.service_account[0].email}"
 }
 
 # Create subnet-2
-/*resource "google_compute_subnetwork" "subnet-2" {
-  name          = "subnet-2"
-  ip_cidr_range = "10.0.0.0/8"
-  network       = google_compute_network.vpc_network.id
-  region        = "us-central1"
-}**/
 resource "google_compute_subnetwork" "subnet-2" {
   name          = "subnet-2"
   ip_cidr_range = "11.0.0.0/8"
-  region        = "us-central1"
-  #network       = google_compute_network.vpc.self_link
+  region        = "me-west1"
   network       = google_compute_network.vpc_network.id
 }
 
@@ -158,7 +165,7 @@ resource "google_compute_subnetwork" "subnet-2" {
 resource "google_compute_instance" "windows-server-2" {
   name         = "windows-server-2"
   machine_type = "e2-medium"
-  zone         = "us-central1-a"
+  zone         = "me-west1-a"
 
   boot_disk {
     initialize_params {
@@ -169,11 +176,11 @@ resource "google_compute_instance" "windows-server-2" {
   network_interface {
     network    = google_compute_network.vpc_network.id
     subnetwork = google_compute_subnetwork.subnet-2.id
-    access_config {}
+    #access_config {}
   }
 
   service_account {
-    email  = "terraform@terraform-gcp-432819.iam.gserviceaccount.com"
+    email  = "d-michaelk-iac@dgt-gcp-cgov-d-michaelk.iam.gserviceaccount.com"
     scopes = ["https://www.googleapis.com/auth/cloud-platform"]
   }
 
