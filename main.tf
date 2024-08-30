@@ -36,7 +36,7 @@ resource "google_compute_subnetwork" "subnet-1" {
 
 # Create Firewall Rules for the VPC
 resource "google_compute_firewall" "allow_internal" {
-  name    = "firewall-subnet-1"
+  name    = "home-test-FW-rule"
   network = google_compute_network.vpc_network.name
 
   allow {
