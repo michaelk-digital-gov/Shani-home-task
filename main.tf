@@ -22,7 +22,7 @@ provider "google" {
 
 # Create VPC
 resource "google_compute_network" "vpc_network" {
-  name                    = "michaelk-govil-home-test"
+  name                    = "michaelk-shani-home-test"
   auto_create_subnetworks = false
 }
 
@@ -66,14 +66,7 @@ resource "google_compute_instance" "ubuntu_vm" {
   }
   metadata_startup_script = <<EOF
 #!/bin/bash
-sudo touch start.sh
-echo "
-#!/bin/bash
-echo "Hello, Shani from Michael!" > index.html
 sudo python3 -m http.server 80
- " >> /home/manager_co_il/start.sh
-sudo chmod u+x /home/manager_co_il/start.sh
-sudo sh /home/manager_co_il/start.sh
 EOF
 
   service_account {
@@ -84,7 +77,7 @@ EOF
 
 # Create additional disk for Windows VM
 resource "google_compute_disk" "windows_additional_disk" {
-  name  = "michaelk-govil-home-test-windows-disk"
+  name  = "additional-windows-disk"
   size  = 20
   type  = "pd-standard"
   zone  = "me-west1-a"
@@ -119,37 +112,29 @@ resource "google_compute_instance" "windows_vm" {
   
   tags = ["windows-server-1"]
 }
-/*
+
 # Create a GCS bucket
 resource "google_storage_bucket" "bucket" {
-  name     = "michaelk-shani-test"
-  location = "me-west1"
+  name                        = "michaelk-shani-test"
+  location                    = "me-west1"
+  storage_class               = "REGIONAL"
+  uniform_bucket_level_access = true
+  versioning {
+    enabled = true
+  }
+  force_destroy = true
 }
 
 # Allow VMs to access the bucket
 resource "google_project_iam_member" "bucket_access_ubuntu" {
   project = "dgt-gcp-cgov-d-michaelk"
-  role    = "roles/storage.objectViewer"
+  role    = "roles/storage.objectCreator"
   member  = "serviceAccount:${google_compute_instance.ubuntu_vm.service_account[0].email}"
 }
 
 resource "google_project_iam_member" "bucket_access_windows" {
   project = "dgt-gcp-cgov-d-michaelk"
-  role    = "roles/storage.objectViewer"
-  member  = "serviceAccount:${google_compute_instance.windows_vm.service_account[0].email}"
-}
-**/
-
-# Allow VMs to access the bucket
-resource "google_project_iam_member" "bucket_access_ubuntu" {
-  project = "dgt-gcp-cgov-d-michaelk"
-  role    = "roles/storage.objectViewer"
-  member  = "serviceAccount:${google_compute_instance.ubuntu_vm.service_account[0].email}"
-}
-
-resource "google_project_iam_member" "bucket_access_windows" {
-  project = "dgt-gcp-cgov-d-michaelk"
-  role    = "roles/storage.objectViewer"
+  role    = "roles/storage.objectCreator"
   member  = "serviceAccount:${google_compute_instance.windows_vm.service_account[0].email}"
 }
 
